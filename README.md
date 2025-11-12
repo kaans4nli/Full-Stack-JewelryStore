@@ -1,1 +1,1 @@
-# login-app-FS
+# Full-Stack-JewelryStore
