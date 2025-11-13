@@ -1,9 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Addresses from "./pages/Addresses";
+import NewAddress from "./pages/NewAddress";
+import EditAddress from "./pages/EditAddress";
 import { useContext } from "react";
 
 // ProtectedRoute: kullanıcı yoksa login sayfasına yönlendir
@@ -28,12 +34,20 @@ function AppRoutes() {
   return (
     <>
       <Navbar />
-      <Routes>
-        <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
-        <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+          <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
+          <Route path="/addresses/new" element={<ProtectedRoute><NewAddress /></ProtectedRoute>} />
+          <Route path="/addresses/edit/:id" element={<ProtectedRoute><EditAddress /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </main>
     </>
   );
 }

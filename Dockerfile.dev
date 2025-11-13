@@ -1,0 +1,20 @@
+# ---- DEV STAGE ----
+FROM node:20-bullseye
+WORKDIR /app
+
+ENV NODE_ENV=development
+
+# package.json ve package-lock.json dosyalarını kopyala
+COPY package*.json ./
+
+# bağımlılıkları yükle
+RUN npm install
+
+# kaynak kodu kopyala (docker volume ile override edilebilir)
+COPY . .
+
+# Vite dev server portu
+EXPOSE 5173
+
+# hot reload ile çalıştır
+CMD ["npm", "run", "dev", "--", "--host"]

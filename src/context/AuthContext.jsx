@@ -23,11 +23,10 @@ export const AuthProvider = ({ children }) => {
     if (savedToken) setAccessToken(savedToken);
   }, []);
 
-  // ✅ Interceptor’ları sadece 1 kez kur
+  // ✅ Interceptor her token değiştiğinde güncellensin
   useEffect(() => {
     setupInterceptors(() => accessToken, setToken, navigate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [accessToken, navigate]);
 
   // ✅ Token varsa kullanıcı profilini yükle
   useEffect(() => {
@@ -55,9 +54,7 @@ export const AuthProvider = ({ children }) => {
       const token = res.data.accessToken;
 
       setToken(token);
-
-      // Token header’a setlenmiş olsun diye bekle
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
       const userData = await fetchProfile();
       setUser(userData);
@@ -69,8 +66,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ✅ Register işlemi
-  const handleRegister = async (username, password) => {
-    await api.post('/auth/register', { username, password });
+  const handleRegister = async (username, email, password) => {
+    await api.post('/auth/register', { username, email, password });
     navigate('/login');
   };
 
