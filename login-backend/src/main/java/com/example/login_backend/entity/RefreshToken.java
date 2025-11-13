@@ -1,16 +1,20 @@
 package com.example.login_backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.Instant;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "refresh_tokens")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "refresh_tokens", indexes = {
+        @Index(name = "idx_refresh_token", columnList = "token")
+})
 public class RefreshToken {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,15 +23,17 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, unique = true, length = 128)
-    private String token; // UUID string
+    @Column(nullable = false, unique = true, length = 256)
+    private String token;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(nullable = false)
     private Instant expiryDate;
 
-    // ekstra: device, ip, userAgent vs. (isteğe bağlı)
-    // getters/setters
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = Instant.now();
+    }
 }

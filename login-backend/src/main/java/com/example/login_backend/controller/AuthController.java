@@ -60,7 +60,11 @@ public class AuthController {
         User user = userRepository.findByUsername(loginRequest.username())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+        Optional<RefreshToken> existingToken = refreshTokenService.findByUserId(user.getId());
+
+        RefreshToken refreshToken = existingToken
+                .filter(t -> !refreshTokenService.isExpired(t))
+                .orElseGet(() -> refreshTokenService.createRefreshToken(user.getId()));
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken.getToken())
                 .httpOnly(true)
@@ -80,7 +84,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username is already taken!");
         }
 
-        User user = new User(registerRequest.username(),
+        User user = new User(registerRequest.username(), registerRequest.email(),
                 passwordEncoder.encode(registerRequest.password()));
         userRepository.save(user);
 

@@ -80,4 +80,12 @@ public class RefreshTokenService {
         refreshTokenRepository.findByToken(token)
                 .ifPresent(refreshTokenRepository::delete);
     }
+
+    public Optional<RefreshToken> findByUserId(Long userId) {
+        return refreshTokenRepository.findByUserId(userId);
+    }
+
+    public boolean isExpired(RefreshToken token) {
+        return token.getExpiryDate().isBefore(Instant.now());
+    }
 }

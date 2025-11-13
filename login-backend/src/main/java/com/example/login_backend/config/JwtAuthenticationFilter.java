@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Cookie'den al (header yoksa)
         if (token == null && request.getCookies() != null) {
             token = Arrays.stream(request.getCookies())
-                    .filter(c -> "jwt".equals(c.getName()))
+                    .filter(c -> "refreshToken".equals(c.getName()))
                     .findFirst()
                     .map(Cookie::getValue)
                     .orElse(null);
