@@ -54,14 +54,20 @@ export const AuthProvider = ({ children }) => {
       const token = res.data.accessToken;
 
       setToken(token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       const userData = await fetchProfile();
       setUser(userData);
 
-      navigate('/profile', { replace: true });
+      // ROLE BAZLI YÖNLENDİRME
+      if (userData.role === "ADMIN") {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/profile', { replace: true });
+      }
+
     } catch (err) {
-      throw err; // Login.jsx yakalayacak
+      throw err;
     }
   };
 

@@ -13,7 +13,7 @@ function Profile() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 text-black">
-      <h2 className="text-2xl font-bold mt-6 ml-6">Profil</h2>
+      <h2 className="text-2xl font-bold mt-6 ml-6">Profil {user.username}</h2>
       <div className="bg-white p-8 rounded-2xl shadow-md w-96 text-center mt-6 ml-6">
         
         {/* 🧭 Adres kutusu */}

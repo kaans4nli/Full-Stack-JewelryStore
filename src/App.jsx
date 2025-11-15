@@ -1,18 +1,38 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation
+} from "react-router-dom";
+
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { useContext } from "react";
+
+// Layouts
 import Navbar from "./components/Navbar";
+import AdminLayout from "./admin/AdminLayout";
+
+// Pages
 import Home from "./pages/Home";
-import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 import Addresses from "./pages/Addresses";
 import NewAddress from "./pages/NewAddress";
 import EditAddress from "./pages/EditAddress";
-import { useContext } from "react";
 
-// ProtectedRoute: kullanıcı yoksa login sayfasına yönlendir
+// Admin Pages
+import AdminHome from "./admin/AdminHome";
+import AdminJewelryList from "./admin/AdminJewelryList";
+import AdminJewelryForm from "./admin/AdminJewelryForm";
+
+
+// ---------------- ROUTE GUARDS ----------------
+
+// ProtectedRoute → login zorunlu
 function ProtectedRoute({ children }) {
   const { user, loading } = useContext(AuthContext);
   const location = useLocation();
@@ -22,30 +42,76 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// AuthRoute: kullanıcı varsa login/register sayfasını engelle
+// AuthRoute → login olan kullanıcı login/register göremez
 function AuthRoute({ children }) {
   const { user, loading } = useContext(AuthContext);
+
   if (loading) return <p className="text-center mt-10">Loading...</p>;
-  if (user) return <Navigate to="/profile" replace />;
+
+  if (user) {
+    if (user.role === "ADMIN") return <Navigate to="/admin" replace />;
+    return <Navigate to="/profile" replace />;
+  }
+
   return children;
 }
 
+// AdminRoute → admin olmayan giremez
+function AdminRoute({ children }) {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== "ADMIN") return <Navigate to="/" replace />;
+  return children;
+}
+
+
+// ---------------- MAIN ROUTES ----------------
+
 function AppRoutes() {
+  const location = useLocation();
+  const hideNavbar = location.pathname.startsWith("/admin");
   return (
     <>
-      <Navbar />
+      {/* Admin sayfalarında normal Navbar görünmesin */}
+      {!hideNavbar && <Navbar />}
+
       <main>
         <Routes>
+          {/* Public */}
           <Route path="/" element={<Home />} />
+
+          {/* Auth Pages */}
           <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
           <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
+
+          {/* User Protected Pages */}
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
           <Route path="/addresses/new" element={<ProtectedRoute><NewAddress /></ProtectedRoute>} />
           <Route path="/addresses/edit/:id" element={<ProtectedRoute><EditAddress /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+
+          {/* ADMIN PANEL */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminHome />} />
+
+            <Route path="jewelry-items" element={<AdminJewelryList />} />
+            <Route path="jewelry-items/new" element={<AdminJewelryForm />} />
+            <Route path="jewelry-items/edit/:id" element={<AdminJewelryForm />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </>
