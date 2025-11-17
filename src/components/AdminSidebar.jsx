@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Boxes, Settings, FolderTree } from "lucide-react";
+import { Boxes, Settings, FolderTree, Users } from "lucide-react";
 
 function AdminSidebar() {
   const navigate = useNavigate();
@@ -18,6 +18,14 @@ function AdminSidebar() {
       </button>
 
       <button
+        onClick={() => navigate("/admin/users")}
+        className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition"
+      >
+        <Users size={20} />
+        Users
+      </button>
+
+      <button
         onClick={() => navigate("/admin/jewelry-items")}
         className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition"
       >
@@ -31,6 +39,14 @@ function AdminSidebar() {
       >
         <FolderTree size={20} />
         Categories
+      </button>
+
+      <button
+        onClick={() => navigate("/admin/materials")}
+        className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition"
+      >
+        <FolderTree size={20} />
+        Materials
       </button>
     </div>
   );

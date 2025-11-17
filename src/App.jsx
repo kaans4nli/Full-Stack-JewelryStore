@@ -26,8 +26,14 @@ import EditAddress from "./pages/EditAddress";
 
 // Admin Pages
 import AdminHome from "./admin/AdminHome";
+import AdminUserList from "./admin/AdminUserList";
+import AdminUserForm from "./admin/AdminUserForm";
 import AdminJewelryList from "./admin/AdminJewelryList";
 import AdminJewelryForm from "./admin/AdminJewelryForm";
+import AdminCategoryList from "./admin/AdminCategoryList";
+import AdminCategoryForm from "./admin/AdminCategoryForm";
+import AdminMaterialList from "./admin/AdminMaterialList";
+import AdminMaterialForm from "./admin/AdminMaterialForm";
 
 
 // ---------------- ROUTE GUARDS ----------------
@@ -105,9 +111,20 @@ function AppRoutes() {
           >
             <Route index element={<AdminHome />} />
 
+            <Route path="users" element={<AdminUserList />} />
+            <Route path="users/new" element={<AdminUserForm />} />
+
             <Route path="jewelry-items" element={<AdminJewelryList />} />
             <Route path="jewelry-items/new" element={<AdminJewelryForm />} />
             <Route path="jewelry-items/edit/:id" element={<AdminJewelryForm />} />
+
+            <Route path="categories" element={<AdminCategoryList />} />
+            <Route path="categories/new" element={<AdminCategoryForm />} />
+            <Route path="categories/edit/:id" element={<AdminCategoryForm />} />
+
+            <Route path="materials" element={<AdminMaterialList />} />
+            <Route path="materials/new" element={<AdminMaterialForm />} />
+            <Route path="materials/edit/:id" element={<AdminMaterialForm />} />
           </Route>
 
           {/* Fallback */}

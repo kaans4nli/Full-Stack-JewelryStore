@@ -137,3 +137,50 @@ export const deleteJewelryItem = async (id) => {
   const res = await api.delete(`/admin/jewelry-items/${id}`);
   return res.data;
 };
+
+// CATEGORY
+export const getCategories = async () => (await api.get("/categories")).data;
+export const getCategoryById = async (id) => (await api.get(`/categories/${id}`)).data;
+export const createCategory = async (data) => (await api.post("/categories", data)).data;
+export const updateCategory = async (id, data) => (await api.put(`/categories/${id}`, data)).data;
+export const deleteCategory = async (id) => (await api.delete(`/categories/${id}`)).data;
+
+// MATERIAL
+export const getMaterials = async () => (await api.get("/materials")).data;
+export const getMaterialById = async (id) => (await api.get(`/materials/${id}`)).data;
+export const createMaterial = async (data) => (await api.post("/materials", data)).data;
+export const updateMaterial = async (id, data) => (await api.put(`/materials/${id}`, data)).data;
+export const deleteMaterial = async (id) => (await api.delete(`/materials/${id}`)).data;
+
+// 📌 Admin Kullanıcı Yönetimi API
+
+// Kullanıcı liste
+export const getAllUsers = async ({ keyword, page, size }) => {
+    const res = await api.get("/admin/users", {
+        params: { keyword, page, size }
+    });
+    return res.data;
+};
+
+// ID'ye göre kullanıcı getir
+export const getUserById = async (id) => {
+  const res = await api.get(`/admin/users/${id}`);
+  return res.data;
+};
+
+// Yeni kullanıcı oluştur
+export const createUser = async (userData) => {
+  const res = await api.post("/admin/users/new", userData);
+  return res.data;
+};
+
+// Kullanıcı güncelle
+export const updateUser = async (id, userData) => {
+  const res = await api.put(`/admin/users/update/${id}`, userData);
+  return res.data;
+};
+
+// Sil
+export const deleteUserById = async (id) => {
+  await api.delete(`/admin/users/delete/${id}`);
+};

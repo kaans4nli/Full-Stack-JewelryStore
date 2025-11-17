@@ -42,7 +42,7 @@ export default function AdminJewelryList() {
           placeholder="Ara..."
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="border px-2 py-1"
+          className="border px-2 py-1 text-black"
         />
         <button onClick={() => setPage(0)} className="bg-blue-500 text-white px-3 rounded">
           Ara
@@ -61,13 +61,13 @@ export default function AdminJewelryList() {
         <table className="w-full border">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border px-2 py-1">ID</th>
-              <th className="border px-2 py-1">Ad</th>
-              <th className="border px-2 py-1">Kategori</th>
-              <th className="border px-2 py-1">Malzeme</th>
-              <th className="border px-2 py-1">Fiyat</th>
-              <th className="border px-2 py-1">Stok</th>
-              <th className="border px-2 py-1">İşlemler</th>
+              <th className="border px-2 py-1 text-black">ID</th>
+              <th className="border px-2 py-1 text-black">Ad</th>
+              <th className="border px-2 py-1 text-black">Kategori</th>
+              <th className="border px-2 py-1 text-black">Malzeme</th>
+              <th className="border px-2 py-1 text-black">Fiyat</th>
+              <th className="border px-2 py-1 text-black">Stok</th>
+              <th className="border px-2 py-1 text-black">İşlemler</th>
             </tr>
           </thead>
           <tbody>
@@ -99,11 +99,11 @@ export default function AdminJewelryList() {
         </table>
       )}
 
-      <div className="flex gap-2 mt-4">
+      <div className="flex gap-2 mt-4 text-black">
         <button
           disabled={page === 0}
           onClick={() => setPage(page - 1)}
-          className="bg-gray-300 px-2 rounded disabled:opacity-50"
+          className="bg-gray-300 px-2 rounded disabled:opacity-50 text-black"
         >
           Önceki
         </button>
@@ -111,7 +111,7 @@ export default function AdminJewelryList() {
         <button
           disabled={page + 1 >= totalPages}
           onClick={() => setPage(page + 1)}
-          className="bg-gray-300 px-2 rounded disabled:opacity-50"
+          className="bg-gray-300 px-2 rounded disabled:opacity-50 text-black"
         >
           Sonraki
         </button>
