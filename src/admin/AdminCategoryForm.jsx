@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createCategory, updateCategory, getCategoryById } from "../api/api";
+import { createCategory, updateCategory, getCategoryById } from "../api/categoryApi";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function AdminCategoryForm() {

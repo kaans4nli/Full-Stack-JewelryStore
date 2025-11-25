@@ -3,7 +3,7 @@ import {
   createUser,
   updateUser,
   getUserById,
-} from "../api/api";
+} from "../api/adminUserApi";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function AdminUserForm() {

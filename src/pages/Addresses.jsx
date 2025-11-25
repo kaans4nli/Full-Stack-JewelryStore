@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAddresses, deleteAddress, setDefaultAddress } from '../api/api';
+import { getAddresses, deleteAddress, setDefaultAddress } from '../api/addressApi';
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Star } from "lucide-react";
 
@@ -76,19 +76,20 @@ export default function Addresses() {
                 </div>
 
                 <div className="flex flex-col items-end justify-between">
-                  <p className="text-sm font-medium text-gray-700">
-                    {address.isDefault ? (
-                      <span className="text-green-600 font-semibold">Varsayılan</span>
+                  <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    {address.isDefault || address.default ? (
+                      <span className="flex items-center gap-1 text-green-600 font-semibold">
+                        <Star size={16} fill="green" color="green" />
+                        Varsayılan
+                      </span>
                     ) : (
-                      <label className="text-gray-400 gap-2">
-                        <input
-                          type="checkbox"
-                          name="isDefault"
-                          onClick={() => handleSetDefault(address.id)}
-                          className="h-4 w-4"
-                        />
+                      <button
+                        onClick={() => handleSetDefault(address.id)}
+                        className="flex items-center gap-1 text-black-500 hover:text-black transition"
+                      >
+                        <Star size={16} />
                         Varsayılan yap
-                      </label>
+                      </button>
                     )}
                   </p>
 

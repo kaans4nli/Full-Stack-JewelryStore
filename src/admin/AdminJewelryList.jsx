@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getJewelryItems, deleteJewelryItem } from "../api/api";
+import { getJewelryItems, deleteJewelryItem } from "../api/jewelryApi";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminJewelryList() {
@@ -73,12 +73,12 @@ export default function AdminJewelryList() {
           <tbody>
             {items.map(item => (
               <tr key={item.id}>
-                <td className="border px-2 py-1">{item.id}</td>
-                <td className="border px-2 py-1">{item.name}</td>
-                <td className="border px-2 py-1">{item.categoryId}</td>
-                <td className="border px-2 py-1">{item.materialId}</td>
-                <td className="border px-2 py-1">{item.price}</td>
-                <td className="border px-2 py-1">{item.stockQuantity}</td>
+                <td className="border px-2 py-1 text-black">{item.id}</td>
+                <td className="border px-2 py-1 text-black">{item.name}</td>
+                <td className="border px-2 py-1 text-black">{item.categoryId}</td>
+                <td className="border px-2 py-1 text-black">{item.materialId}</td>
+                <td className="border px-2 py-1 text-black">{item.price}</td>
+                <td className="border px-2 py-1 text-black">{item.stockQuantity}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
                     onClick={() => navigate(`/admin/jewelry-items/edit/${item.id}`)}

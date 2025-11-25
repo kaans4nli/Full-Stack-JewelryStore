@@ -100,7 +100,7 @@ export const updateAddress = (id, updatedAddress) =>
 export const deleteAddress = (id) =>
   api.delete(`/user/addresses/${id}`).then(res => res.data);
 
-export const setDefaultAddress = (id) => 
+export const setDefaultAddress = (id) =>
   api.put(`/user/addresses/${id}/default`);
 
 // -----------------------------
@@ -123,13 +123,13 @@ export const getJewelryItemById = async (id) => {
   return res.data;
 };
 
-export const createJewelryItem = async (data) => {
-  const res = await api.post("/admin/jewelry-items", data);
+export const createJewelryItem = async (formData) => {
+  const res = await api.post("/admin/jewelry-items", formData);
   return res.data;
 };
 
-export const updateJewelryItem = async (id, data) => {
-  const res = await api.put(`/admin/jewelry-items/${id}`, data);
+export const updateJewelryItem = async (id, formData) => {
+  const res = await api.put(`/admin/jewelry-items/${id}`, formData);
   return res.data;
 };
 
@@ -139,27 +139,26 @@ export const deleteJewelryItem = async (id) => {
 };
 
 // CATEGORY
-export const getCategories = async () => (await api.get("/categories")).data;
-export const getCategoryById = async (id) => (await api.get(`/categories/${id}`)).data;
-export const createCategory = async (data) => (await api.post("/categories", data)).data;
-export const updateCategory = async (id, data) => (await api.put(`/categories/${id}`, data)).data;
-export const deleteCategory = async (id) => (await api.delete(`/categories/${id}`)).data;
+export const getCategories = async () => (await api.get("/admin/categories")).data;
+export const getCategoryById = async (id) => (await api.get(`/admin/categories/${id}`)).data;
+export const createCategory = async (data) => (await api.post("/admin/categories", data)).data;
+export const updateCategory = async (id, data) => (await api.put(`/admin/categories/${id}`, data)).data;
+export const deleteCategory = async (id) => (await api.delete(`/admin/categories/${id}`)).data;
 
 // MATERIAL
-export const getMaterials = async () => (await api.get("/materials")).data;
-export const getMaterialById = async (id) => (await api.get(`/materials/${id}`)).data;
-export const createMaterial = async (data) => (await api.post("/materials", data)).data;
-export const updateMaterial = async (id, data) => (await api.put(`/materials/${id}`, data)).data;
-export const deleteMaterial = async (id) => (await api.delete(`/materials/${id}`)).data;
+export const getMaterials = async () => (await api.get("/admin/materials")).data;
+export const getMaterialById = async (id) => (await api.get(`/admin/materials/${id}`)).data;
+export const createMaterial = async (data) => (await api.post("/admin/materials", data)).data;
+export const updateMaterial = async (id, data) => (await api.put(`/admin/materials/${id}`, data)).data;
+export const deleteMaterial = async (id) => (await api.delete(`/admin/materials/${id}`)).data;
 
 // 📌 Admin Kullanıcı Yönetimi API
 
 // Kullanıcı liste
-export const getAllUsers = async ({ keyword, page, size }) => {
-    const res = await api.get("/admin/users", {
-        params: { keyword, page, size }
-    });
-    return res.data;
+export const getAllUsers = async ({ keyword, page = 0, size = 10 }) => {
+  const params = { keyword, page, size };
+  const res = await api.get("/admin/users", { params });
+  return res.data;
 };
 
 // ID'ye göre kullanıcı getir
@@ -183,4 +182,39 @@ export const updateUser = async (id, userData) => {
 // Sil
 export const deleteUserById = async (id) => {
   await api.delete(`/admin/users/delete/${id}`);
+};
+
+// ------------------------
+// Product Image (Gallery)
+// ------------------------
+
+// ID'ye göre ürünün tüm resimlerini getir
+export const getProductImages = async (itemId) => {
+  const res = await api.get(`/admin/images/${itemId}`);
+  return res.data; // array of ProductImage
+};
+
+// Yeni resim ekle (URL ile)
+export const addProductImage = async (itemId, imageUrl) => {
+  const res = await api.post(`/admin/images/${itemId}`, imageUrl, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return res.data;
+};
+
+// Yeni resim upload (file)
+export const uploadProductImage = async (itemId, file) => {
+  const fd = new FormData();
+  fd.append("image", file);
+
+  const res = await api.post(`/admin/images/${itemId}`, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return res.data;
+};
+
+// Resim sil
+export const deleteProductImage = async (imageId) => {
+  await api.delete(`/admin/images/${imageId}`);
 };

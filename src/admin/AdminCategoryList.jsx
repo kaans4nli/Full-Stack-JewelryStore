@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategories, deleteCategory } from "../api/api";
+import { getCategories, deleteCategory } from "../api/categoryApi";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminCategoryList() {
@@ -54,8 +54,8 @@ export default function AdminCategoryList() {
           <tbody>
             {categories.map((cat) => (
               <tr key={cat.id}>
-                <td className="border px-2 py-1">{cat.id}</td>
-                <td className="border px-2 py-1">{cat.name}</td>
+                <td className="border px-2 py-1 text-black">{cat.id}</td>
+                <td className="border px-2 py-1 text-black">{cat.name}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
                     onClick={() => navigate(`/admin/categories/edit/${cat.id}`)}

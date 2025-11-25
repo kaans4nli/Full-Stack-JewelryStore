@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMaterials, deleteMaterial } from "../api/api";
+import { getMaterials, deleteMaterial } from "../api/materialApi";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminMaterialList() {
@@ -54,8 +54,8 @@ export default function AdminMaterialList() {
           <tbody>
             {materials.map((mat) => (
               <tr key={mat.id}>
-                <td className="border px-2 py-1">{mat.id}</td>
-                <td className="border px-2 py-1">{mat.name}</td>
+                <td className="border px-2 py-1 text-black">{mat.id}</td>
+                <td className="border px-2 py-1 text-black">{mat.name}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
                     onClick={() => navigate(`/admin/materials/edit/${mat.id}`)}

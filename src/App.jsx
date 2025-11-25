@@ -113,6 +113,7 @@ function AppRoutes() {
 
             <Route path="users" element={<AdminUserList />} />
             <Route path="users/new" element={<AdminUserForm />} />
+            <Route path="users/edit/:id" element={<AdminUserForm />} />
 
             <Route path="jewelry-items" element={<AdminJewelryList />} />
             <Route path="jewelry-items/new" element={<AdminJewelryForm />} />

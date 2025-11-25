@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllUsers, deleteUserById } from "../api/api";
+import { getAllUsers, deleteUserById } from "../api/adminUserApi";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminUserList() {
@@ -81,10 +81,10 @@ export default function AdminUserList() {
                     <tbody>
                         {users.map((u) => (
                             <tr key={u.id}>
-                                <td className="border px-3 py-1">{u.id}</td>
-                                <td className="border px-3 py-1">{u.username}</td>
-                                <td className="border px-3 py-1">{u.email}</td>
-                                <td className="border px-3 py-1">{u.role}</td>
+                                <td className="border px-3 py-1 text-black">{u.id}</td>
+                                <td className="border px-3 py-1 text-black">{u.username}</td>
+                                <td className="border px-3 py-1 text-black">{u.email}</td>
+                                <td className="border px-3 py-1 text-black">{u.role}</td>
                                 <td className="border px-3 py-1 flex gap-2">
                                     <button
                                         onClick={() => navigate(`/admin/users/edit/${u.id}`)}

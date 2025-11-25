@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createMaterial, updateMaterial, getMaterialById } from "../api/api";
+import { createMaterial, updateMaterial, getMaterialById } from "../api/materialApi";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function AdminMaterialForm() {

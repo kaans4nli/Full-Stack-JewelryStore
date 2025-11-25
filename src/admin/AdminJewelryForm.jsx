@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   createJewelryItem,
   updateJewelryItem,
   getJewelryItemById,
-  getCategories,
-  getMaterials
-} from "../api/api";
-import { useNavigate, useParams } from "react-router-dom";
-import { useRef } from "react";
+} from "../api/jewelryApi";
+import { getCategories } from "../api/categoryApi";
+import { getMaterials } from "../api/materialApi";
 
 export default function AdminJewelryForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const fileInputRef = useRef(null);
 
   const [categories, setCategories] = useState([]);
   const [materials, setMaterials] = useState([]);
@@ -24,75 +24,119 @@ export default function AdminJewelryForm() {
     categoryId: "",
     materialId: "",
     mainImageUrl: "",
-    galleryImages: []
   });
 
-  const fileInputRef = useRef(null);
+  // Yeni yüklenen dosyalar (backend'e gönderilecek)
+  const [galleryFiles, setGalleryFiles] = useState([]);
 
-  // Kategoriler ve malzemeler yüklenir
+  // Var olan + yeni eklenen görüntülerin tamamının önizlemesi
+  const [galleryPreview, setGalleryPreview] = useState([]);
+
   useEffect(() => {
     getCategories().then(setCategories);
     getMaterials().then(setMaterials);
 
     if (id) {
-      getJewelryItemById(id).then(setForm);
+      getJewelryItemById(id).then((data) => {
+        setForm({
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          stockQuantity: data.stockQuantity,
+          categoryId: data.categoryId,
+          materialId: data.materialId,
+          mainImageUrl: data.mainImageUrl,
+        });
+
+        // Eski resimleri sadece preview'a koyuyoruz (bunlar URL oluyor)
+        if (data.galleryImages) {
+          setGalleryPreview(data.galleryImages);
+        }
+      });
     }
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (id) await updateJewelryItem(id, form);
-    else await createJewelryItem(form);
-
-    navigate("/admin/jewelry-items");
-  };
-
-  // Dosya seçimi
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     processFiles(files);
   };
 
-  // Drag & Drop
   const handleDrop = (e) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     processFiles(files);
   };
 
-  // Dosyaları işleme
   const processFiles = (files) => {
-    const newImages = [];
-
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
-        newImages.push(reader.result);
-
-        // Tüm dosyalar okunduğunda setState
-        if (newImages.length === files.length) {
-          setForm((prev) => ({
-            ...prev,
-            galleryImages: [...prev.galleryImages, ...newImages],
-          }));
-        }
+        setGalleryPreview((prev) => [...prev, reader.result]);
+        setGalleryFiles((prev) => [...prev, file]);
       };
-      reader.readAsDataURL(file); // Base64 olarak okuyor
+      reader.readAsDataURL(file);
     });
   };
 
-  // Resim silme
   const removeImage = (index) => {
-    setForm((prev) => ({
-      ...prev,
-      galleryImages: prev.galleryImages.filter((_, i) => i !== index),
-    }));
+    const preview = galleryPreview[index];
+
+    // Eğer bu resim yeni yüklenmişse, galleryFiles'tan da sil
+    setGalleryFiles((prev) => {
+      const newFiles = [...prev];
+
+      // Yeni yüklenen resimler base64 preview ile eşleşir
+      if (preview.startsWith("data:image")) {
+        newFiles.splice(index - (galleryPreview.length - prev.length), 1);
+      }
+
+      return newFiles;
+    });
+
+    setGalleryPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (!form.mainImageUrl && galleryPreview.length > 0) {
+        form.mainImageUrl = galleryPreview[0];
+      }
+
+      const formData = new FormData();
+
+      // JSON kısmı
+      formData.append(
+        "item",
+        new Blob([JSON.stringify(form)], { type: "application/json" })
+      );
+
+      // Yeni resimler
+      galleryFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      let itemId;
+
+      if (id) {
+        const updated = await updateJewelryItem(id, formData);
+        itemId = updated.id;
+      } else {
+        const created = await createJewelryItem(formData);
+        itemId = created.id;
+      }
+
+      navigate("/admin/jewelry-items");
+    } catch (err) {
+      console.error("Jewelry create/update error:", err);
+      alert("Ürün kaydedilemedi. Konsolu kontrol et.");
+    }
   };
 
   return (
@@ -102,8 +146,6 @@ export default function AdminJewelryForm() {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-3">
-
-        {/* Ürün Adı */}
         <label className="label-field">Ürün Adı</label>
         <input
           name="name"
@@ -112,7 +154,6 @@ export default function AdminJewelryForm() {
           className="border px-2 py-1 w-full text-black"
         />
 
-        {/* Açıklama */}
         <label className="label-field">Açıklama</label>
         <input
           name="description"
@@ -121,7 +162,6 @@ export default function AdminJewelryForm() {
           className="border px-2 py-1 w-full text-black"
         />
 
-        {/* Fiyat */}
         <label className="label-field">Fiyat</label>
         <input
           type="number"
@@ -131,7 +171,6 @@ export default function AdminJewelryForm() {
           className="border px-2 py-1 w-full text-black"
         />
 
-        {/* Stok */}
         <label className="label-field">Stok</label>
         <input
           type="number"
@@ -141,58 +180,46 @@ export default function AdminJewelryForm() {
           className="border px-2 py-1 w-full text-black"
         />
 
-        {/* Kategori Dropdown */}
         <label className="label-field">Kategori</label>
         <select
           name="categoryId"
-          value={form.categoryId || ""}
+          value={form.categoryId}
           onChange={handleChange}
           className="border px-2 py-1 w-full text-black"
         >
           <option value="">Kategori seçin</option>
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
             </option>
           ))}
         </select>
 
-        {/* Malzeme Dropdown */}
         <label className="label-field">Malzeme</label>
         <select
           name="materialId"
-          value={form.materialId || ""}
+          value={form.materialId}
           onChange={handleChange}
           className="border px-2 py-1 w-full text-black"
         >
           <option value="">Malzeme seçin</option>
-          {materials.map(mat => (
+          {materials.map((mat) => (
             <option key={mat.id} value={mat.id}>
               {mat.name}
             </option>
           ))}
         </select>
 
-        {/* Ana Resim */}
-        <label className="label-field">Ana Resim URL</label>
-        <input
-          name="mainImageUrl"
-          value={form.mainImageUrl}
-          onChange={handleChange}
-          className="border px-2 py-1 w-full text-black"
-        />
-
-        {/* Galeri Resimleri */}
         <label className="label-field">Galeri Resimleri</label>
-
-        {/* Drag & Drop Alanı */}
         <div
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           className="border-2 border-dashed border-gray-400 p-6 text-center rounded-lg cursor-pointer bg-white"
           onClick={() => fileInputRef.current.click()}
         >
-          <p className="text-gray-600">Resimleri buraya sürükleyin veya tıklayın</p>
+          <p className="text-gray-600">
+            Resimleri buraya sürükleyin veya tıklayın
+          </p>
           <input
             type="file"
             accept="image/*"
@@ -203,16 +230,10 @@ export default function AdminJewelryForm() {
           />
         </div>
 
-        {/* Önizlemeler */}
         <div className="grid grid-cols-3 gap-4 mt-4">
-          {form.galleryImages.map((img, index) => (
+          {galleryPreview.map((img, index) => (
             <div key={index} className="relative">
-              <img
-                src={img}
-                alt="gallery"
-                className="w-full h-24 object-cover rounded shadow"
-              />
-
+              <img src={img} className="w-full h-24 object-cover rounded shadow" />
               <button
                 type="button"
                 className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
@@ -224,17 +245,14 @@ export default function AdminJewelryForm() {
           ))}
         </div>
 
-        {/* Butonlar */}
         <div className="flex justify-end space-x-3 mt-4">
           <button type="button" onClick={() => navigate("/admin/jewelry-items")}>
             İptal
           </button>
-
           <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
             {id ? "Güncelle" : "Oluştur"}
           </button>
         </div>
-
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createAddress } from '../api/api';
+import { createAddress } from '../api/addressApi';
 
 export default function NewAddress() {
   const navigate = useNavigate();
