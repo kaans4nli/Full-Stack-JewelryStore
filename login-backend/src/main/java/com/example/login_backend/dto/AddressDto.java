@@ -1,5 +1,6 @@
 package com.example.login_backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -15,5 +16,7 @@ public class AddressDto {
     private String city;
     private String postalCode;
     private String country;
+
+    @JsonProperty("isDefault")
     private boolean isDefault;
 }

@@ -5,6 +5,10 @@ import com.example.login_backend.dto.UserRequest;
 import com.example.login_backend.entity.User;
 import com.example.login_backend.repository.UserRepository;
 import com.example.login_backend.service.AdminUserService;
+import com.example.login_backend.spec.UserSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +27,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<UserDto> getAllUsers(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        var spec = UserSpecification.hasKeyword(keyword);
+
+        return userRepository.findAll(spec, pageable)
+                .map(this::toDto);
     }
 
     @Override

@@ -8,9 +8,4 @@ public interface UserService {
     JwtResponse login(LoginRequest request);
     String register(RegisterRequest request);
     ProfileResponse getProfile(Authentication authentication);
-
-    List<AddressDto> getAddresses(Authentication authentication);
-    AddressDto addAddress(Authentication authentication, AddressRequest request);
-    AddressDto updateAddress(Authentication authentication, Long addressId, AddressRequest request);
-    void deleteAddress(Authentication authentication, Long addressId);
 }

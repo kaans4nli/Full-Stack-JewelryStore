@@ -3,13 +3,16 @@ package com.example.login_backend.controller.admin;
 import com.example.login_backend.dto.JewelryItemDto;
 import com.example.login_backend.service.JewelryItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("api/admin/jewelry-items")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 public class JewelryItemController {
 
@@ -25,17 +28,24 @@ public class JewelryItemController {
         return service.getById(id);
     }
 
-    @PostMapping
-    public JewelryItemDto create(@RequestBody JewelryItemDto dto) {
-        return service.create(dto);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public JewelryItemDto create(
+            @RequestPart("item") JewelryItemDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        return service.create(dto, images);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(
+            value = "/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public JewelryItemDto update(
             @PathVariable Long id,
-            @RequestBody JewelryItemDto dto
+            @RequestPart("item") JewelryItemDto dto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        return service.update(id, dto);
+        return service.update(id, dto, images);
     }
 
     @DeleteMapping("/{id}")

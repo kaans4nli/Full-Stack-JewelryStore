@@ -23,25 +23,4 @@ public class UserController {
     public ProfileResponse getProfile(Authentication authentication) {
         return userService.getProfile(authentication);
     }
-
-    // 🔹 Adresler
-    @GetMapping("/addresses")
-    public List<AddressDto> getAddresses(Authentication authentication) {
-        return userService.getAddresses(authentication);
-    }
-
-    @PostMapping("/addresses")
-    public AddressDto addAddress(Authentication authentication, @RequestBody AddressRequest request) {
-        return userService.addAddress(authentication, request);
-    }
-
-    @PutMapping("/addresses/{id}")
-    public AddressDto updateAddress(Authentication authentication, @PathVariable Long id, @RequestBody AddressRequest request) {
-        return userService.updateAddress(authentication, id, request);
-    }
-
-    @DeleteMapping("/addresses/{id}")
-    public void deleteAddress(Authentication authentication, @PathVariable Long id) {
-        userService.deleteAddress(authentication, id);
-    }
 }

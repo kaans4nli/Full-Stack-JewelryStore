@@ -7,6 +7,7 @@ import com.example.login_backend.repository.ProductImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,13 +28,28 @@ public class ProductImageService {
         JewelryItem item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
+        if (item.getImages() == null) {
+            item.setImages(new ArrayList<>());
+        }
+
+        boolean isFirstImage = item.getImages().isEmpty();
+
         ProductImage img = ProductImage.builder()
                 .imageUrl(imageUrl)
-                .isMain(false)
+                .isMain(isFirstImage)
                 .jewelryItem(item)
                 .build();
 
-        return imageRepository.save(img);
+        ProductImage saved = imageRepository.save(img);
+
+        item.getImages().add(saved);
+
+        if (isFirstImage) {
+            item.setImageUrl(imageUrl);
+            itemRepository.save(item);
+        }
+
+        return saved;
     }
 
     public void deleteImage(Long imageId) {

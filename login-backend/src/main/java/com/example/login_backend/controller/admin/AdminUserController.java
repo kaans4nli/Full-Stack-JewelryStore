@@ -3,6 +3,7 @@ package com.example.login_backend.controller.admin;
 import com.example.login_backend.dto.UserDto;
 import com.example.login_backend.dto.UserRequest;
 import com.example.login_backend.service.AdminUserService;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +19,12 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public List<UserDto> getAllUsers() {
-        return adminUserService.getAllUsers();
+    public Page<UserDto> getAllUsers(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return adminUserService.getAllUsers(keyword, page, size);
     }
 
     @GetMapping("/{id}")
