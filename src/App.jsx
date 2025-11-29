@@ -15,6 +15,7 @@ import AdminLayout from "./admin/AdminLayout";
 
 // Pages
 import Home from "./pages/Home";
+import ItemDetail from "./pages/ItemDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<Home />} />
+          <Route path="/item/:id" element={<ItemDetail />} />
 
           {/* Auth Pages */}
           <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />

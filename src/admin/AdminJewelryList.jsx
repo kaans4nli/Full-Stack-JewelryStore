@@ -75,8 +75,8 @@ export default function AdminJewelryList() {
               <tr key={item.id}>
                 <td className="border px-2 py-1 text-black">{item.id}</td>
                 <td className="border px-2 py-1 text-black">{item.name}</td>
-                <td className="border px-2 py-1 text-black">{item.categoryId}</td>
-                <td className="border px-2 py-1 text-black">{item.materialId}</td>
+                <td className="border px-2 py-1 text-black">{item.categoryName}</td>
+                <td className="border px-2 py-1 text-black">{item.materialName}</td>
                 <td className="border px-2 py-1 text-black">{item.price}</td>
                 <td className="border px-2 py-1 text-black">{item.stockQuantity}</td>
                 <td className="border px-2 py-1 flex gap-2">

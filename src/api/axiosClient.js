@@ -5,6 +5,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Token refresh logic
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -16,16 +17,24 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Interceptor setup
 export const setupInterceptors = (getToken, setToken, navigate) => {
+  const publicPaths = ["/auth", "/jewelry"]; // Public endpoints
+
+  // Request interceptor
   api.interceptors.request.use(
     (config) => {
       const token = getToken();
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      const isPublic = publicPaths.some(path => config.url.includes(path));
+      if (token && !isPublic) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
       return config;
     },
     (error) => Promise.reject(error)
   );
 
+  // Response interceptor
   api.interceptors.response.use(
     response => response,
     async (error) => {
@@ -39,7 +48,7 @@ export const setupInterceptors = (getToken, setToken, navigate) => {
             failedQueue.push({ resolve, reject });
           })
             .then(token => {
-              originalRequest.headers['Authorization'] = 'Bearer ' + token;
+              originalRequest.headers.Authorization = `Bearer ${token}`;
               return api(originalRequest);
             })
             .catch(err => Promise.reject(err));
@@ -50,12 +59,11 @@ export const setupInterceptors = (getToken, setToken, navigate) => {
         try {
           const res = await api.post('/auth/refresh');
           const newAccessToken = res.data.accessToken;
-
           setToken(newAccessToken);
-          api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
+          api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
           processQueue(null, newAccessToken);
 
-          originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         } catch (err) {
           processQueue(err, null);
