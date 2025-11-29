@@ -205,12 +205,14 @@ public class JewelryItemService {
                 .price(item.getPrice())
                 .stockQuantity(item.getStockQuantity())
                 .categoryId(item.getCategory() != null ? item.getCategory().getId() : null)
+                .categoryName(item.getCategory() != null ? item.getCategory().getName() : null)
                 .materialId(item.getMaterial() != null ? item.getMaterial().getId() : null)
+                .materialName(item.getMaterial() != null ? item.getMaterial().getName() : null)
                 .mainImageUrl(item.getImageUrl())
                 .galleryImages(
                         item.getImages() != null
                                 ? item.getImages().stream().map(ProductImage::getImageUrl).toList()
-                                : null
+                                : List.of() // null yerine boş liste tercih ettim
                 )
                 .build();
     }

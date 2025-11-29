@@ -34,3 +34,9 @@ public class LocalStorageService implements StorageService {
         }
     }
 }
+
+//Dinamik yapmak için:
+//String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+//        .build()
+//        .toUriString();
+//return baseUrl + "/uploads/" + filename;

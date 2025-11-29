@@ -23,6 +23,7 @@ services:
     volumes:
       - ./login-backend:/app           # Kod değişikliklerini alabilmek için mount
       - ~/.m2:/root/.m2                # Maven cache
+      - ./login-backend/uploads:/app/uploads
     ports:
       - "8080:8080"
     env_file:

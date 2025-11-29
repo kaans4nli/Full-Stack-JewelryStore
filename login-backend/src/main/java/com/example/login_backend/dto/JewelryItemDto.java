@@ -22,8 +22,10 @@ public class JewelryItemDto {
     private Integer stockQuantity;
 
     private Long categoryId;
+    private String categoryName;
 
     private Long materialId;
+    private String materialName;
 
     private String mainImageUrl;
 
