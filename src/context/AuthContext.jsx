@@ -74,9 +74,19 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, setToken, user, loading, handleLogin, handleRegister, handleLogout }}
+      value={{
+        accessToken,
+        setToken,
+        user,
+        loading,
+        handleLogin,
+        handleRegister,
+        handleLogout
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => React.useContext(AuthContext);

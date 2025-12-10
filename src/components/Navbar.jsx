@@ -1,9 +1,23 @@
-import { useContext } from "react";
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems
+} from "@headlessui/react";
+import {
+  Bars3Icon,
+  BellIcon,
+  XMarkIcon,
+  ShoppingCartIcon
+} from "@heroicons/react/24/outline";
+
+import CartDrawer from "../components/CartDrawer";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const navigation = [
   { name: "Home", href: "/", current: true },
@@ -18,6 +32,7 @@ function classNames(...classes) {
 
 export default function Navbar() {
   const { user, handleLogout } = useContext(AuthContext);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -84,56 +99,66 @@ export default function Navbar() {
             ) : (
               // 🔹 Kullanıcı varsa: Notifications + Profile dropdown
               <>
-                <button
-                  type="button"
-                  onClick={() => navigate("/notifications")}
-                  className="relative rounded-full p-1 text-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
-                >
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon aria-hidden="true" className="size-6" />
-                </button>
-
-                {/* Profile Dropdown */}
-                <Menu as="div" className="relative ml-3">
-                  <MenuButton className="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                    <span className="sr-only">Open user menu</span>
-                    <img
-                      alt="User avatar"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
-                    />
-                  </MenuButton>
-
-                  <MenuItems
-                    transition
-                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0"
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="relative rounded-full p-1 text-gray-400 hover:text-white"
                   >
-                    <MenuItem>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
-                      >
-                        Your profile
-                      </Link>
-                    </MenuItem>
-                    <MenuItem>
-                      <Link
-                        to="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
-                      >
-                        Settings
-                      </Link>
-                    </MenuItem>
-                    <MenuItem>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-400 data-focus:bg-gray-100"
-                      >
-                        Sign out
-                      </button>
-                    </MenuItem>
-                  </MenuItems>
-                </Menu>
+                    <ShoppingCartIcon className="size-6" />
+                  </button>
+                  <CartDrawer open={isCartOpen} setOpen={setIsCartOpen} />
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/notifications")}
+                    className="relative rounded-full p-1 text-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
+                  >
+                    <span className="sr-only">View notifications</span>
+                    <BellIcon aria-hidden="true" className="size-6" />
+                  </button>
+
+                  {/* Profile Dropdown */}
+                  <Menu as="div" className="relative ml-3">
+                    <MenuButton className="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                      <span className="sr-only">Open user menu</span>
+                      <img
+                        alt="User avatar"
+                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
+                      />
+                    </MenuButton>
+
+                    <MenuItems
+                      transition
+                      className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0"
+                    >
+                      <MenuItem>
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
+                        >
+                          Your profile
+                        </Link>
+                      </MenuItem>
+                      <MenuItem>
+                        <Link
+                          to="/settings"
+                          className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100"
+                        >
+                          Settings
+                        </Link>
+                      </MenuItem>
+                      <MenuItem>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-400 data-focus:bg-gray-100"
+                        >
+                          Sign out
+                        </button>
+                      </MenuItem>
+                    </MenuItems>
+                  </Menu>
+                </div>
               </>
             )}
           </div>

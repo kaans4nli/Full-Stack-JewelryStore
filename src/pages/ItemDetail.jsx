@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getJewelryItemByIdPublic } from "../api/jewelryApi";
 import { StarIcon } from "@heroicons/react/20/solid";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -13,6 +15,10 @@ export default function ItemDetail() {
     const { id } = useParams();
     const [item, setItem] = useState(null);
     const [current, setCurrent] = useState(0);
+    const [added, setAdded] = useState(false); // ✅ Buton animasyonu
+    const { addToCart } = useCart(); // ✅ Sepet fonksiyonu
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         getJewelryItemByIdPublic(id)
@@ -26,7 +32,6 @@ export default function ItemDetail() {
     if (!item)
         return <p className="text-center py-10 text-lg">Ürün bulunamadı.</p>;
 
-    // Tüm görselleri hazırla, item null değilken
     const allImages = [...(item.galleryImages || [])];
 
     const nextImage = () => {
@@ -35,6 +40,29 @@ export default function ItemDetail() {
 
     const prevImage = () => {
         setCurrent((prev) => (prev - 1 + allImages.length) % allImages.length);
+    };
+
+    // ✅ Sepete ekleme handler
+    const handleAddToCart = async () => {
+        // 🔒 Kullanıcı yoksa login sayfasına yönlendir
+        if (!user) {
+            navigate("/login");
+            return;
+        }
+
+        if (item.stockQuantity === 0) {
+            alert("Bu ürün stokta yok!");
+            return;
+        }
+
+        try {
+            await addToCart(item.id);
+            setAdded(true);
+            setTimeout(() => setAdded(false), 1000);
+        } catch (err) {
+            console.error("Sepete ekleme hatası:", err);
+            alert("Sepete eklenirken bir hata oluştu.");
+        }
     };
 
     return (
@@ -49,7 +77,6 @@ export default function ItemDetail() {
                             className="w-full h-full object-contain"
                         />
 
-                        {/* Sol ok */}
                         <button
                             onClick={prevImage}
                             className="absolute left-3 top-1/2 -translate-y-1/2 
@@ -58,7 +85,6 @@ export default function ItemDetail() {
                             ‹
                         </button>
 
-                        {/* Sağ ok */}
                         <button
                             onClick={nextImage}
                             className="absolute right-3 top-1/2 -translate-y-1/2 
@@ -68,7 +94,6 @@ export default function ItemDetail() {
                         </button>
                     </div>
 
-                    {/* Thumbnail */}
                     <div className="flex gap-3 mt-4 justify-center">
                         {allImages.map((img, index) => (
                             <img
@@ -88,20 +113,17 @@ export default function ItemDetail() {
           lg:grid-rows-[auto_auto_1fr] lg:gap-x-8 lg:px-8 
           lg:pt-16 lg:pb-24">
 
-                    {/* Ürün başlık */}
                     <div className="lg:col-span-2 lg:border-r lg:border-gray-200 lg:pr-8">
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
                             {item.name}
                         </h1>
                     </div>
 
-                    {/* Sağ sütun */}
                     <div className="mt-4 lg:row-span-3 lg:mt-0">
                         <p className="text-3xl tracking-tight text-gray-900">
                             {item.price} ₺
                         </p>
 
-                        {/* Reviews */}
                         <div className="mt-6">
                             <div className="flex items-center">
                                 <div className="flex items-center">
@@ -118,26 +140,24 @@ export default function ItemDetail() {
                                         />
                                     ))}
                                 </div>
-                                <a
-                                    href="#"
-                                    className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                                >
+                                <span className="ml-3 text-sm font-medium text-indigo-600">
                                     {reviews.totalCount} değerlendirme
-                                </a>
+                                </span>
                             </div>
                         </div>
 
+                        {/* ✅ Sepete Ekle Butonu */}
                         <button
-                            type="button"
-                            className="mt-10 flex w-full items-center justify-center 
-              rounded-md bg-indigo-600 px-8 py-3 text-base 
-              font-medium text-white hover:bg-indigo-700"
+                            onClick={handleAddToCart}
+                            className={`mt-10 flex w-full items-center justify-center 
+                            rounded-md px-8 py-3 text-base font-medium text-white 
+                            transition-all duration-300
+                            ${added ? "bg-green-600" : "bg-indigo-600 hover:bg-indigo-700"}`}
                         >
-                            Sepete Ekle
+                            {added ? "Eklendi ✓" : "Sepete Ekle"}
                         </button>
                     </div>
 
-                    {/* Açıklama */}
                     <div className="py-10 lg:col-span-2 lg:col-start-1 
             lg:border-r lg:border-gray-200 lg:pt-6 lg:pr-8 lg:pb-16">
 
@@ -157,15 +177,11 @@ export default function ItemDetail() {
                                 </h2>
                                 <div className="mt-4 flex gap-4 text-sm text-gray-600">
                                     {item.categoryName && (
-                                        <p className="text-sm text-gray-600">
-                                            {item.categoryName}
-                                        </p>
+                                        <p>{item.categoryName}</p>
                                     )}
                                     <p>,</p>
                                     {item.materialName && (
-                                        <p className="text-sm text-gray-600">
-                                            {item.materialName}
-                                        </p>
+                                        <p>{item.materialName}</p>
                                     )}
                                 </div>
                             </div>

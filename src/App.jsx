@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { useContext } from "react";
 
 // Layouts
@@ -142,7 +143,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
       </AuthProvider>
     </Router>
   );
