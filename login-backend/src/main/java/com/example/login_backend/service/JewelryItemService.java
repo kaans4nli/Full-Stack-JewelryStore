@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -234,5 +235,24 @@ public class JewelryItemService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         return itemRepository.findAll(spec, pageable);
+    }
+
+    public BigDecimal getPrice(Long id) {
+        return itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı"))
+                .getPrice();
+    }
+
+    @Transactional
+    public void reduceStock(Long id, int quantity) {
+        JewelryItem item = itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı"));
+
+        if (item.getStockQuantity() < quantity) {
+            throw new RuntimeException("Yeterli stok yok");
+        }
+
+        item.setStockQuantity(item.getStockQuantity() - quantity);
+        itemRepository.save(item);
     }
 }

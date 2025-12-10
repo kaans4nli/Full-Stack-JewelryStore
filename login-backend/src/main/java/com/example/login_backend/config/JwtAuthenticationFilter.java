@@ -36,7 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Public endpoint'leri JWT doğrulamasından muaf bırak
         if (path.startsWith("/api/auth/") ||
                 path.startsWith("/api/jewelry") ||
-                path.startsWith("/uploads/")) {  // <-- RESİMLER ARTIK JWT'YE TAKILMIYOR
+                path.startsWith("/uploads/") ||
+                path.startsWith("/api/webhook")) {
             filterChain.doFilter(request, response);
             return;
         }
