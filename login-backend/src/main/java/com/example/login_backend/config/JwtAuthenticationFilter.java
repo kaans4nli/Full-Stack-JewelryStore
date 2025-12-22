@@ -2,7 +2,6 @@ package com.example.login_backend.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,16 +12,30 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil,
+                                   UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+    }
+
+    /**
+     * Whitelist endpoint'ler burada net şekilde ayrılır
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/api/jewelry")
+                || path.startsWith("/uploads/")
+                || path.startsWith("/api/webhook")
+                || path.startsWith("/api/payments/create-payment-intent");
     }
 
     @Override
@@ -31,46 +44,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        String authHeader = request.getHeader("Authorization");
 
-        // Public endpoint'leri JWT doğrulamasından muaf bırak
-        if (path.startsWith("/api/auth/") ||
-                path.startsWith("/api/jewelry") ||
-                path.startsWith("/uploads/") ||
-                path.startsWith("/api/webhook")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = null;
+        String token = authHeader.substring(7);
+        String username;
 
-        // Header'dan al
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+        try {
+            username = jwtUtil.extractUsername(token);
+        } catch (Exception e) {
+            // Token bozuk / expire / signature hatalı
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // Cookie'den al (header yoksa)
-        if (token == null && request.getCookies() != null) {
-            token = Arrays.stream(request.getCookies())
-                    .filter(c -> "refreshToken".equals(c.getName()))
-                    .findFirst()
-                    .map(Cookie::getValue)
-                    .orElse(null);
-        }
+        if (username != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
-        if (token != null) {
-            String username = jwtUtil.extractUsername(token);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtUtil.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails, null, userDetails.getAuthorities()
-                            );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(username);
+
+            if (jwtUtil.validateToken(token, userDetails)) {
+
+                // ✅ Role mapping burada NET
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authentication);
             }
         }
 

@@ -42,4 +42,9 @@ public class CartController {
     public void removeItem(@PathVariable Long itemId) {
         cartService.removeItem(itemId);
     }
+
+    @DeleteMapping("/{cartId}/clear")
+    public void clearCart(@PathVariable Long cartId) {
+        cartService.clearCart(cartId);
+    }
 }

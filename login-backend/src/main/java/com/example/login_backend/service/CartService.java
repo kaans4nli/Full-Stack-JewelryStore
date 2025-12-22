@@ -10,6 +10,7 @@ import com.example.login_backend.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -68,6 +69,19 @@ public class CartService {
      * ------------------------------------------------------ */
     public void removeItem(Long itemId) {
         cartItemRepository.deleteById(itemId);
+    }
+
+    /** ------------------------------------------------------
+     *  Sepeti tamamen temizle
+     * ------------------------------------------------------ */
+    @Transactional
+    public void clearCart(Long cartId) {
+
+        if (!cartRepository.existsById(cartId)) {
+            throw new RuntimeException("Cart not found");
+        }
+
+        cartItemRepository.deleteAllByCartId(cartId);
     }
 
     /** ------------------------------------------------------
