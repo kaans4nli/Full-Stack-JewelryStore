@@ -5,76 +5,105 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Token refresh logic
+/* ================= REFRESH QUEUE ================= */
+
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
   });
   failedQueue = [];
 };
 
-// Interceptor setup
-export const setupInterceptors = (getToken, setToken, navigate) => {
-  const publicPaths = ["/auth", "/jewelry"]; // Public endpoints
+/* ================= INTERCEPTORS ================= */
 
-  // Request interceptor
+export const setupInterceptors = (getToken, setToken, clearToken, navigate) => {
+
+  const publicPaths = [
+    "/auth/login",
+    "/auth/register",
+    "/auth/refresh",
+    "/jewelry",
+    "/payments/create-payment-intent",
+  ];
+
+  const isPublicRequest = (url = "") =>
+    publicPaths.some(path => url.startsWith(path));
+
+  /* ---------- REQUEST ---------- */
   api.interceptors.request.use(
     (config) => {
-      const token = getToken();
-      const isPublic = publicPaths.some(path => config.url.includes(path));
-      if (token && !isPublic) {
-        config.headers.Authorization = `Bearer ${token}`;
+      if (!isPublicRequest(config.url)) {
+        const token = getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    Promise.reject
   );
 
-  // Response interceptor
+  /* ---------- RESPONSE ---------- */
   api.interceptors.response.use(
     response => response,
     async (error) => {
+
       const originalRequest = error.config;
 
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-
-        if (isRefreshing) {
-          return new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          })
-            .then(token => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return api(originalRequest);
-            })
-            .catch(err => Promise.reject(err));
-        }
-
-        isRefreshing = true;
-
-        try {
-          const res = await api.post('/auth/refresh');
-          const newAccessToken = res.data.accessToken;
-          setToken(newAccessToken);
-          api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
-          processQueue(null, newAccessToken);
-
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return api(originalRequest);
-        } catch (err) {
-          processQueue(err, null);
-          navigate('/login');
-          return Promise.reject(err);
-        } finally {
-          isRefreshing = false;
-        }
+      if (
+        error.response?.status !== 401 ||
+        originalRequest._retry ||
+        originalRequest.url.startsWith("/auth/refresh")
+      ) {
+        return Promise.reject(error);
       }
 
-      return Promise.reject(error);
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(Promise.reject);
+      }
+
+      isRefreshing = true;
+
+      try {
+        const { data } = await api.post("/auth/refresh");
+        const newAccessToken = data.accessToken;
+
+        setToken(newAccessToken);
+        api.defaults.headers.common.Authorization =
+          `Bearer ${newAccessToken}`;
+
+        processQueue(null, newAccessToken);
+
+        originalRequest.headers.Authorization =
+          `Bearer ${newAccessToken}`;
+
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+
+        clearToken();
+        delete api.defaults.headers.common.Authorization;
+
+        navigate("/login");
+        return Promise.reject(refreshError);
+
+      } finally {
+        isRefreshing = false;
+      }
     }
   );
 };

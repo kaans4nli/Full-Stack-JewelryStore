@@ -6,6 +6,8 @@ import {
   useLocation
 } from "react-router-dom";
 
+import { Toaster } from "react-hot-toast";
+
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { useContext } from "react";
@@ -25,6 +27,8 @@ import Notifications from "./pages/Notifications";
 import Addresses from "./pages/Addresses";
 import NewAddress from "./pages/NewAddress";
 import EditAddress from "./pages/EditAddress";
+import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 // Admin Pages
 import AdminHome from "./admin/AdminHome";
@@ -37,6 +41,10 @@ import AdminCategoryForm from "./admin/AdminCategoryForm";
 import AdminMaterialList from "./admin/AdminMaterialList";
 import AdminMaterialForm from "./admin/AdminMaterialForm";
 
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 // ---------------- ROUTE GUARDS ----------------
 
@@ -102,6 +110,8 @@ function AppRoutes() {
           <Route path="/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
           <Route path="/addresses/new" element={<ProtectedRoute><NewAddress /></ProtectedRoute>} />
           <Route path="/addresses/edit/:id" element={<ProtectedRoute><EditAddress /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/checkout-success" element={<ProtectedRoute><CheckoutSuccess /></ProtectedRoute>} />
 
           {/* ADMIN PANEL */}
           <Route
@@ -141,13 +151,16 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <AppRoutes />
-        </CartProvider>
-      </AuthProvider>
-    </Router>
+    <Elements stripe={stripePromise}>
+      <Toaster position="top-right" />
+      <Router>
+        <AuthProvider>
+          <CartProvider>
+            <AppRoutes />
+          </CartProvider>
+        </AuthProvider>
+      </Router>
+    </Elements>
   );
 }
 

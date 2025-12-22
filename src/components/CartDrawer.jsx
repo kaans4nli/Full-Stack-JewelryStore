@@ -1,8 +1,10 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 export default function CartDrawer({ open, setOpen }) {
+    const navigate = useNavigate();
     const { cart, removeItem, updateQuantity, loading } = useCart();
 
     return (
@@ -130,7 +132,13 @@ export default function CartDrawer({ open, setOpen }) {
                                             Shipping and taxes calculated at checkout.
                                         </p>
 
-                                        <button className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700">
+                                        <button
+                                            onClick={() => {
+                                                setOpen(false); // drawer kapansın
+                                                navigate("/checkout"); // checkout sayfasına yönlendir
+                                            }}
+                                            className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700"
+                                        >
                                             Checkout
                                         </button>
 

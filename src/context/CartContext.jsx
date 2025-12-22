@@ -41,6 +41,16 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+    const clearCart = async () => {
+        try {
+            if (!cart?.id) return;
+            await cartApi.clearCart(cart.id);
+            setCart(null);
+        } catch (err) {
+            console.error("Cart temizlenemedi:", err);
+        }
+    };
+
     const removeItem = async (itemId) => {
         try {
             await cartApi.removeItem(itemId);
@@ -68,6 +78,7 @@ export const CartProvider = ({ children }) => {
                 removeItem,
                 updateQuantity,
                 loadCart,
+                clearCart,
             }}
         >
             {children}
