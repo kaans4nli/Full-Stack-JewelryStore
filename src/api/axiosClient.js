@@ -108,4 +108,8 @@ export const setupInterceptors = (getToken, setToken, clearToken, navigate) => {
   );
 };
 
+export const clearAuthHeader = () => {
+  delete api.defaults.headers.common.Authorization;
+};
+
 export default api;

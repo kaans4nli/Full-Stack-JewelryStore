@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
-import { setupInterceptors } from "../api/axiosClient";
+import { setupInterceptors, clearAuthHeader } from "../api/axiosClient";
 import authApi from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 import { getTokenExpiration } from "../utils/tokenUtils";
@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userLoaded, setUserLoaded] = useState(false);
 
   const refreshTimeoutRef = useRef(null);
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("accessToken");
     clearTimeout(refreshTimeoutRef.current);
+    clearAuthHeader(); // 🔥 ŞART
   };
 
   const refreshToken = async () => {
@@ -32,6 +34,14 @@ export const AuthProvider = ({ children }) => {
       navigate("/login");
     }
   };
+
+  useEffect(() => {
+    console.log("🟢 AUTH STATE CHANGE", {
+      accessToken,
+      user,
+      userLoaded,
+    });
+  }, [accessToken, user, userLoaded]);
 
   const scheduleRefresh = (token) => {
     clearTimeout(refreshTimeoutRef.current);
@@ -78,31 +88,55 @@ export const AuthProvider = ({ children }) => {
       clearAuth,
       navigate
     );
-  }, [accessToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Profil yükleme
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setUser(null);
+      setUserLoaded(true);
+      return;
+    }
 
     const loadProfile = async () => {
-      setLoading(true);
       try {
         const data = await authApi.getProfile();
         setUser(data);
       } catch {
         clearAuth();
       } finally {
-        setLoading(false);
+        setUserLoaded(true);
       }
     };
 
+    setUserLoaded(false);
     loadProfile();
   }, [accessToken]);
 
+  useEffect(() => {
+    if (!userLoaded || !user) return;
+
+    if (user.role === "ADMIN") {
+      console.log("➡️ NAVIGATE ADMIN");
+      navigate("/admin", { replace: true });
+    } else {
+      console.log("➡️ NAVIGATE PROFILE");
+      navigate("/profile", { replace: true });
+    }
+  }, [userLoaded, user]);
+
   const handleLogin = async (username, password) => {
+    console.log("🔵 LOGIN START");
+
     setUser(null);
+    setUserLoaded(false);
+
     const res = await authApi.login(username, password);
+    console.log("🟢 TOKEN RECEIVED", res.accessToken);
+
     setToken(res.accessToken);
+    // ❗ profil + redirect BURADA BİTTİ
   };
 
   const handleRegister = async (username, email, password) => {
@@ -116,6 +150,7 @@ export const AuthProvider = ({ children }) => {
     } catch { }
 
     clearAuth();
+    setUserLoaded(false); // 👈 EKLE
     navigate("/login", { replace: true });
   };
 
@@ -125,6 +160,7 @@ export const AuthProvider = ({ children }) => {
         accessToken,
         user,
         loading,
+        userLoaded,
         handleLogin,
         handleRegister,
         handleLogout,

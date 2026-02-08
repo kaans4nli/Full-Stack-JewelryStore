@@ -82,7 +82,6 @@ function AdminRoute({ children }) {
   return children;
 }
 
-
 // ---------------- MAIN ROUTES ----------------
 
 function AppRoutes() {
