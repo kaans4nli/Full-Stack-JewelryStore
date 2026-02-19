@@ -13,11 +13,11 @@ import { CartProvider } from "./context/CartContext";
 import { useContext } from "react";
 
 // Layouts
-import Navbar from "./components/Navbar";
+import { Layout } from "./components/layout/Layout";
 import AdminLayout from "./admin/AdminLayout";
 
 // Pages
-import Home from "./pages/Home";
+import Home from "./pages/Home/Home";
 import ItemDetail from "./pages/ItemDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -86,11 +86,11 @@ function AdminRoute({ children }) {
 
 function AppRoutes() {
   const location = useLocation();
-  const hideNavbar = location.pathname.startsWith("/admin");
+  const hideLayout = location.pathname.startsWith("/admin");
   return (
     <>
-      {/* Admin sayfalarında normal Navbar görünmesin */}
-      {!hideNavbar && <Navbar />}
+      {/* Admin sayfalarında normal Layout görünmesin */}
+      {!hideLayout && <Layout />}
 
       <main>
         <Routes>
