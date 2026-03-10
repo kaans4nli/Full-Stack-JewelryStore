@@ -17,7 +17,6 @@ export const CartProvider = ({ children }) => {
             setCart(null);
         }
     }, [user, accessToken]);
-
     const loadCart = async () => {
         try {
             if (!user) return;

@@ -58,7 +58,7 @@ export default function AdminMaterialList() {
                 <td className="border px-2 py-1 text-black">{mat.name}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
-                    onClick={() => navigate(`/admin/materials/edit/${mat.id}`)}
+                    onClick={() => navigate(`/admin/materials/${mat.id}`)}
                     className="bg-yellow-500 text-white px-3 rounded"
                   >
                     Düzenle

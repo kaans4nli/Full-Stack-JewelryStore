@@ -58,7 +58,7 @@ export default function AdminCategoryList() {
                 <td className="border px-2 py-1 text-black">{cat.name}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
-                    onClick={() => navigate(`/admin/categories/edit/${cat.id}`)}
+                    onClick={() => navigate(`/admin/categories/${cat.id}`)}
                     className="bg-yellow-500 text-white px-3 rounded"
                   >
                     Düzenle

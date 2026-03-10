@@ -1,6 +1,7 @@
 import api from "./axiosClient";
 
 const cartApi = {
+    // Get cart by userId - backend: GET /api/cart/{userId}
     getCart: async (userId) => {
         const res = await api.get(`/cart/${userId}`);
         return res.data;

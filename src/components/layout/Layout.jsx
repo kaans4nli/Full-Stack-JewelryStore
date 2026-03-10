@@ -1,4 +1,5 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -6,6 +7,7 @@ import Footer from './Footer';
  * Layout Component
  * Tüm sayfaları saran ana layout
  * Header ve Footer'ı içerir
+ * Outlet ile nested routes destekler
  */
 const Layout = ({ children }) => {
   return (
@@ -15,7 +17,8 @@ const Layout = ({ children }) => {
       
       {/* Main Content */}
       <main className="flex-grow">
-        {children}
+        {/* Outlet: nested route'ların render edildiği yer */}
+        {children || <Outlet />}
       </main>
       
       {/* Footer */}

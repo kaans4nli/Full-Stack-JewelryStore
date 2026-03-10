@@ -36,11 +36,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log("🟢 AUTH STATE CHANGE", {
-      accessToken,
-      user,
-      userLoaded,
-    });
   }, [accessToken, user, userLoaded]);
 
   const scheduleRefresh = (token) => {
@@ -99,44 +94,70 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    let mounted = true;
+
     const loadProfile = async () => {
       try {
+        if (mounted) setUserLoaded(false);
         const data = await authApi.getProfile();
+        if (!mounted) return;
         setUser(data);
-      } catch {
+      } catch (err) {
+        console.info("Profile load failed:", err?.response?.status || err.message || err);
         clearAuth();
       } finally {
-        setUserLoaded(true);
+        if (mounted) setUserLoaded(true);
       }
     };
 
-    setUserLoaded(false);
     loadProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, [accessToken]);
 
   useEffect(() => {
     if (!userLoaded || !user) return;
 
     if (user.role === "ADMIN") {
-      console.log("➡️ NAVIGATE ADMIN");
       navigate("/admin", { replace: true });
     } else {
-      console.log("➡️ NAVIGATE PROFILE");
       navigate("/profile", { replace: true });
     }
   }, [userLoaded, user]);
 
   const handleLogin = async (username, password) => {
-    console.log("🔵 LOGIN START");
-
     setUser(null);
     setUserLoaded(false);
 
-    const res = await authApi.login(username, password);
-    console.log("🟢 TOKEN RECEIVED", res.accessToken);
+    try {
+      const res = await authApi.login(username, password);
 
-    setToken(res.accessToken);
-    // ❗ profil + redirect BURADA BİTTİ
+      console.debug("Login response:", res);
+
+      if (res && res.accessToken) {
+        setToken(res.accessToken);
+        // profile will be loaded by effect
+      } else {
+        // No accessToken in response — maybe backend uses cookie auth.
+        // Try loading profile directly.
+        try {
+          const data = await authApi.getProfile();
+          setUser(data);
+          setUserLoaded(true);
+        } catch (err) {
+          console.error("Login succeeded but profile fetch failed:", err);
+          clearAuth();
+          setUserLoaded(true);
+          throw err;
+        }
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setUserLoaded(true);
+      throw err;
+    }
   };
 
   const handleRegister = async (username, email, password) => {

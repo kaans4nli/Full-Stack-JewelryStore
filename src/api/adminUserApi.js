@@ -17,7 +17,7 @@ export const createUser = async (userData) => {
 };
 
 export const updateUser = async (id, userData) => {
-  const res = await api.put(`/admin/users/update/${id}`, userData);
+  const res = await api.put(`/admin/users/${id}`, userData);
   return res.data;
 };
 

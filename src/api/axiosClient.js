@@ -37,22 +37,29 @@ export const setupInterceptors = (getToken, setToken, clearToken, navigate) => {
   api.interceptors.request.use(
     (config) => {
       if (!isPublicRequest(config.url)) {
-        const token = getToken();
+        const token = localStorage.getItem("accessToken");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
       }
       return config;
-    },
-    Promise.reject
+    }
   );
 
   /* ---------- RESPONSE ---------- */
   api.interceptors.response.use(
-    response => response,
+    response => {
+      try {
+        console.debug("API Response:", response.status, response.config?.url, response.data);
+      } catch { }
+      return response;
+    },
     async (error) => {
 
       const originalRequest = error.config;
+      try {
+        console.debug("API Response error:", originalRequest?.method?.toUpperCase(), originalRequest?.url, error.response?.status, error.response?.data, error.response?.headers);
+      } catch { }
 
       if (
         error.response?.status !== 401 ||

@@ -24,6 +24,7 @@ export default function AdminJewelryForm() {
     categoryId: "",
     materialId: "",
     mainImageUrl: "",
+    galleryImages: [],
   });
 
   // Yeni yüklenen dosyalar (backend'e gönderilecek)
@@ -39,16 +40,8 @@ export default function AdminJewelryForm() {
     if (id) {
       getJewelryItemById(id).then((data) => {
         setForm({
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          stockQuantity: data.stockQuantity,
-          categoryId: data.categoryId,
-          materialId: data.materialId,
-          mainImageUrl: data.mainImageUrl,
+          ...data,
         });
-
-        // Eski resimleri sadece preview'a koyuyoruz (bunlar URL oluyor)
         if (data.galleryImages) {
           setGalleryPreview(data.galleryImages);
         }
@@ -76,7 +69,14 @@ export default function AdminJewelryForm() {
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
-        setGalleryPreview((prev) => [...prev, reader.result]);
+        setGalleryPreview((prev) => {
+          const newPreview = [...prev, reader.result];
+          // EĞER şu an hiç ana resim yoksa, ilk yüklenen bu dosyayı ana resim yap
+          if (!form.mainImageUrl && newPreview.length === 1) {
+            setForm(f => ({ ...f, mainImageUrl: reader.result }));
+          }
+          return newPreview;
+        });
         setGalleryFiles((prev) => [...prev, file]);
       };
       reader.readAsDataURL(file);
@@ -84,58 +84,68 @@ export default function AdminJewelryForm() {
   };
 
   const removeImage = (index) => {
-    const preview = galleryPreview[index];
+    const removedImg = galleryPreview[index];
+    const isMainBeingRemoved = form.mainImageUrl === removedImg;
 
-    // Eğer bu resim yeni yüklenmişse, galleryFiles'tan da sil
-    setGalleryFiles((prev) => {
-      const newFiles = [...prev];
+    // 1. Gallery listelerini güncelle (URL veya Dosya ayrımı)
+    if (!removedImg.startsWith("data:image")) {
+      setForm(prev => ({
+        ...prev,
+        galleryImages: prev.galleryImages.filter(url => url !== removedImg)
+      }));
+    } else {
+      // Yeni dosyalardan silerken index kaymasını hesapla
+      const fileIndex = index - (galleryPreview.length - galleryFiles.length);
+      setGalleryFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
 
-      // Yeni yüklenen resimler base64 preview ile eşleşir
-      if (preview.startsWith("data:image")) {
-        newFiles.splice(index - (galleryPreview.length - prev.length), 1);
-      }
+    // 2. Preview listesinden kaldır
+    const updatedPreview = galleryPreview.filter((_, i) => i !== index);
+    setGalleryPreview(updatedPreview);
 
-      return newFiles;
-    });
-
-    setGalleryPreview((prev) => prev.filter((_, i) => i !== index));
+    // 3. İPUCU: Eğer silinen resim ANA RESİM ise, yeni bir tane ata
+    if (isMainBeingRemoved) {
+      setForm(prev => ({
+        ...prev,
+        mainImageUrl: updatedPreview.length > 0 ? updatedPreview[0] : ""
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      if (!form.mainImageUrl && galleryPreview.length > 0) {
-        form.mainImageUrl = galleryPreview[0];
-      }
-
       const formData = new FormData();
 
-      // JSON kısmı
+      // 2. Kritik Nokta: Form içindeki galleryImages'ı güncel tutarak gönderiyoruz
+      // galleryPreview içindeki SADECE string (URL) olanları ayıklayıp form'a koyalım
+      const currentGalleryUrls = galleryPreview.filter(img => !img.startsWith("data:image"));
+
+      const updatedForm = {
+        ...form,
+        galleryImages: currentGalleryUrls
+      };
+
       formData.append(
         "item",
-        new Blob([JSON.stringify(form)], { type: "application/json" })
+        new Blob([JSON.stringify(updatedForm)], { type: "application/json" })
       );
 
-      // Yeni resimler
       galleryFiles.forEach((file) => {
         formData.append("images", file);
       });
 
-      let itemId;
-
       if (id) {
-        const updated = await updateJewelryItem(id, formData);
-        itemId = updated.id;
+        await updateJewelryItem(id, formData);
       } else {
-        const created = await createJewelryItem(formData);
-        itemId = created.id;
+        await createJewelryItem(formData);
       }
 
       navigate("/admin/jewelry-items");
     } catch (err) {
       console.error("Jewelry create/update error:", err);
-      alert("Ürün kaydedilemedi. Konsolu kontrol et.");
+      alert("Hata oluştu.");
     }
   };
 

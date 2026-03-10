@@ -5,7 +5,7 @@
 @import "tailwindcss";
 
 /* Import Design System Variables */
-@import './styles/variables.css';
+@import './variables.css';
 
 /* ==================== THEME CONFIGURATION ==================== */
 @theme {

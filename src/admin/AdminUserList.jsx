@@ -87,7 +87,7 @@ export default function AdminUserList() {
                                 <td className="border px-3 py-1 text-black">{u.role}</td>
                                 <td className="border px-3 py-1 flex gap-2">
                                     <button
-                                        onClick={() => navigate(`/admin/users/edit/${u.id}`)}
+                                        onClick={() => navigate(`/admin/users/${u.id}`)}
                                         className="bg-yellow-500 text-white px-2 rounded"
                                     >
                                         Düzenle

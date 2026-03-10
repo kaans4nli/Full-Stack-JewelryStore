@@ -1,0 +1,10 @@
+export { default as Addresses } from './Addresses';
+export { default as CheckoutPageAdd } from './CheckoutPage';
+export { default as CheckoutSuccess } from './CheckoutSuccess';
+export { default as EditAddress } from './EditAddress';
+export { default as Favorites } from './Favorites';
+export { default as NewAddress } from './NewAddress';
+export { default as Notifications } from './Notifications';
+export { default as Orders } from './Orders';
+export { default as Profile } from './Profile';
+export { default as Settings } from './Settings';

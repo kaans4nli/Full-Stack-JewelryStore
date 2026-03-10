@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAllJewelryItemsPublic } from "../../api/jewelryApi";
+import { useCart } from "../../hooks";
+import { useFavorites } from "../../hooks";
+import toast from "react-hot-toast";
 
 // Components
-import { HeroSection } from '../../components/home/HeroSection';
+import { HeroSection } from '../../components/home/HeroSection/HeroSection';
 import { CategoryGrid } from '../../components/home/CategoryGrid';
 import { TrustBadges } from '../../components/home/TrustBadges';
-import { ProductCard } from '../../components/product/ProductCard';
+import { ProductCard } from '../../components/product/ProductCard/ProductCard';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +36,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="bg-white">
+    <>
       {/* Hero Section */}
       <HeroSection
         title="Zamansız Zarafet"
@@ -47,8 +53,8 @@ const Home = () => {
       <CategoryGrid />
 
       {/* Öne Çıkan Ürünler */}
-      <section className="py-16">
-        <div className="container-custom">
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-12">
             <div>
               <h2 className="font-primary text-4xl font-semibold text-gray-900 mb-2">
@@ -119,17 +125,21 @@ const Home = () => {
                     discount_percent: item.discountPercent || 0
                   }}
                   onAddToCart={(product) => {
-                    console.log('Sepete eklendi:', product);
-                    // TODO: Sepet functionality
+                    try {
+                      addToCart(product.id, 1);
+                      toast.success(`${product.name} sepete eklendi!`);
+                    } catch (err) {
+                      toast.error('Sepete eklenemedi');
+                    }
                   }}
                   onAddToFavorites={(product) => {
-                    console.log('Favorilere eklendi:', product);
-                    // TODO: Favoriler functionality
+                    toggleFavorite(product.id);
+                    const isFav = isFavorite(product.id);
+                    toast.success(isFav ? 'Favorilere eklendi!' : 'Favorilerden çıkarıldı');
                   }}
-                  isFavorite={false}
+                  isFavorite={isFavorite(item.id)}
                   onQuickView={(product) => {
-                    console.log('Quick view:', product);
-                    // TODO: Quick view modal
+                    navigate(`/item/${product.id}`);
                   }}
                 />
               ))}
@@ -158,7 +168,7 @@ const Home = () => {
 
       {/* Newsletter */}
       <section className="py-16 bg-white">
-        <div className="container-custom">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="font-primary text-3xl font-semibold text-gray-900 mb-4">
               Kampanyalardan Haberdar Olun
@@ -189,7 +199,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 

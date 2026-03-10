@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './ProductCard.css';
+import { useAuth } from "../../../context/AuthContext";
 
 /**
  * ProductCard Component
@@ -21,6 +23,8 @@ export const ProductCard = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const {
     id,
@@ -40,6 +44,11 @@ export const ProductCard = ({
   const discountedPrice = hasDiscount ? price * (1 - discount_percent / 100) : null;
 
   const handleAddToCart = (e) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock && onAddToCart) {
@@ -95,7 +104,7 @@ export const ProductCard = ({
       </button>
 
       {/* Image Container */}
-      <a href={`/products/${id}`} className="product-image-link">
+      <Link to={`/item/${id}`} className="product-image-link">
         <div className="product-image-container">
           {!imageLoaded && <div className="skeleton product-image-skeleton"></div>}
           
@@ -144,7 +153,7 @@ export const ProductCard = ({
             )}
           </div>
         </div>
-      </a>
+      </Link>
 
       {/* Product Info */}
       <div className="product-info">
@@ -160,9 +169,9 @@ export const ProductCard = ({
         </div>
 
         {/* Product Name */}
-        <a href={`/products/${id}`} className="product-name">
+        <Link to={`/item/${id}`} className="product-name">
           <h3>{name}</h3>
-        </a>
+        </Link>
 
         {/* Price */}
         <div className="product-price">

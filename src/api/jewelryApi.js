@@ -50,6 +50,18 @@ export const getAllJewelryItemsPublic = async () => {
   return res.data;
 };
 
+// Convenience wrapper for frontend usage
+export const getAll = async () => {
+  return await getAllJewelryItemsPublic();
+};
+
+// Search endpoint (query param `q`) - returns array of products
+export const search = async (q, params = {}) => {
+  const queryParams = { q, ...params };
+  const res = await api.get("/jewelry", { params: queryParams });
+  return res.data;
+};
+
 // 🔹 Public: tek ürün
 export const getJewelryItemByIdPublic = async (id) => {
   const res = await api.get(`/jewelry/${id}`);

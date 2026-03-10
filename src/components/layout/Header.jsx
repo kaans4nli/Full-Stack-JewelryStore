@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import {
   Disclosure,
   DisclosureButton,
@@ -20,6 +20,8 @@ import {
 import CartDrawer from "../cart/CartDrawer";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
+import { useFavorites } from "../../hooks";
 
 const navigation = [
   { name: "Ana Sayfa", href: "/", current: false },
@@ -34,6 +36,11 @@ function classNames(...classes) {
 
 const Header = () => {
   const { user, handleLogout } = useContext(AuthContext);
+  const { cart } = useCart();
+  const { favorites } = useFavorites();
+  const [showSearch, setShowSearch] = useState(false);
+  const [search, setSearch] = useState("");
+  const inputRef = useRef(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
@@ -55,6 +62,19 @@ const Header = () => {
     }
     return location.pathname.startsWith(href);
   };
+
+  // Debounced navigation for search
+  useEffect(() => {
+    const q = search.trim();
+    const handle = setTimeout(() => {
+      if (q.length > 0) {
+        navigate(`/products?search=${encodeURIComponent(q)}`);
+      } else if (location.pathname.startsWith('/products')) {
+        navigate('/products');
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [search, navigate, location.pathname]);
 
   return (
     <Disclosure as="nav" className={classNames(
@@ -139,13 +159,27 @@ const Header = () => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-2 lg:space-x-4">
-            <button
-              onClick={() => navigate("/search")}
-              className="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-all duration-200 hover:scale-110"
-              aria-label="Arama"
-            >
-              <MagnifyingGlassIcon className="h-6 w-6" />
-            </button>
+            <div className="flex items-center">
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowSearch((s) => !s);
+                    setTimeout(() => inputRef.current?.focus(), 50);
+                  }}
+                  className="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-all duration-200 hover:scale-110"
+                  aria-label="Arama"
+                >
+                  <MagnifyingGlassIcon className="h-6 w-6" />
+                </button>
+                <input
+                  ref={inputRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Ürün ara..."
+                  className={`transition-all duration-200 ml-2 rounded-md border border-gray-200 px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-gray-300 ${showSearch ? 'w-60 opacity-100 visible' : 'w-0 opacity-0 invisible'}`}
+                />
+              </div>
+            </div>
 
             {!user ? (
               <div className="hidden lg:flex items-center space-x-2">
@@ -173,7 +207,9 @@ const Header = () => {
                   aria-label="Favoriler"
                 >
                   <HeartIcon className="h-6 w-6" />
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                  {favorites?.length > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                  )}
                 </button>
 
                 <button
@@ -182,11 +218,11 @@ const Header = () => {
                   aria-label="Sepet"
                 >
                   <ShoppingCartIcon className="h-6 w-6" />
-                  <span 
+                  <span
                     className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-white text-xs font-bold rounded-full shadow-md"
                     style={{ background: 'var(--color-secondary)' }}
                   >
-                    3
+                    {cart?.items ? cart.items.reduce((sum, it) => sum + (it.quantity || 0), 0) : 0}
                   </span>
                 </button>
                 <CartDrawer open={isCartOpen} setOpen={setIsCartOpen} />

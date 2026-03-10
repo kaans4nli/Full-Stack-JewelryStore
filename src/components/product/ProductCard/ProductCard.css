@@ -169,7 +169,8 @@
 }
 
 .quick-action-btn svg {
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
 }
 
 .quick-action-btn:hover svg {

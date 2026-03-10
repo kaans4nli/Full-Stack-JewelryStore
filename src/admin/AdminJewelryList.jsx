@@ -81,7 +81,7 @@ export default function AdminJewelryList() {
                 <td className="border px-2 py-1 text-black">{item.stockQuantity}</td>
                 <td className="border px-2 py-1 flex gap-2">
                   <button
-                    onClick={() => navigate(`/admin/jewelry-items/edit/${item.id}`)}
+                    onClick={() => navigate(`/admin/jewelry-items/${item.id}/edit`)}
                     className="bg-yellow-500 text-white px-2 rounded"
                   >
                     Düzenle
