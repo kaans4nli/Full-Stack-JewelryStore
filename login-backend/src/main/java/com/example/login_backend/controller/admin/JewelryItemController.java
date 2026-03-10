@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -58,10 +59,25 @@ public class JewelryItemController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long materialId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Boolean inStock,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
     ) {
-        return service.searchItems(keyword, categoryId, materialId, page, size)
-                .map(service::toDto);  // entity -> dto dönüşümü
+        return service.searchItems(
+                keyword,
+                categoryId,
+                materialId,
+                minPrice,
+                maxPrice,
+                inStock,
+                page,
+                size,
+                sortBy,
+                direction
+        ).map(service::toDto);
     }
 }

@@ -20,17 +20,28 @@ public class LocalStorageService implements StorageService {
     public String upload(MultipartFile file) {
         try {
             Files.createDirectories(Paths.get(uploadDir));
-
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadDir + filename);
-
             Files.write(filePath, file.getBytes());
-
-            // Tarayıcıdan erişmek için
             return "/uploads/" + filename;
-
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file", e);
+        }
+    }
+
+    @Override
+    public void delete(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) return;
+
+        try {
+            // "/uploads/123_test.jpg" -> "123_test.jpg" kısmını alıyoruz
+            String filename = imageUrl.replace("/uploads/", "");
+            Path filePath = Paths.get(uploadDir).resolve(filename);
+
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            // Silme hatası kritik olmayabilir, loglayıp geçebilirsin
+            System.err.println("Dosya fiziksel olarak silinemedi: " + imageUrl);
         }
     }
 }

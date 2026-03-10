@@ -121,72 +121,78 @@ public class JewelryItemService {
 
     @Transactional
     public JewelryItemDto update(Long id, JewelryItemDto dto, List<MultipartFile> images) {
-
         JewelryItem item = itemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
-        // Ensure images list initialized
-        if (item.getImages() == null) {
-            item.setImages(new ArrayList<>());
-        }
-
+        // Temel bilgiler
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
         item.setPrice(dto.getPrice());
         item.setStockQuantity(dto.getStockQuantity());
 
-        if (dto.getCategoryId() != null) {
-            Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-            item.setCategory(category);
-        }
-
-        if (dto.getMaterialId() != null) {
-            Material material = materialRepository.findById(dto.getMaterialId())
-                    .orElseThrow(() -> new IllegalArgumentException("Material not found"));
-            item.setMaterial(material);
-        }
-
-        // Eğer DTO içerisinde gallery URL'leri gönderilmişse (örn: düzenleme ekranında hali hazırdaki URL'ler)
-        if (dto.getGalleryImages() != null && !dto.getGalleryImages().isEmpty()) {
-            // Eğer istenirse önceki productImages temizlenip yeniden ekleme yapılabilir.
-            // Bu örnekte mevcut resimleri koruyor, DTO'daki URL'leri yeni ekleme olarak ekliyoruz.
-            for (int i = 0; i < dto.getGalleryImages().size(); i++) {
-                String imgUrl = dto.getGalleryImages().get(i);
-                ProductImage img = ProductImage.builder()
-                        .imageUrl(imgUrl)
-                        .isMain(false)
-                        .jewelryItem(item)
-                        .build();
-                imageRepository.save(img);
-                item.getImages().add(img);
+        // 1) Silme İşlemi
+        if (item.getImages() != null) {
+            List<ProductImage> toRemove = item.getImages().stream()
+                    .filter(img -> dto.getGalleryImages() == null || !dto.getGalleryImages().contains(img.getImageUrl()))
+                    .toList();
+            for (ProductImage img : toRemove) {
+                storageService.delete(img.getImageUrl());
+                item.getImages().remove(img);
             }
         }
 
-        // Yeni dosyalar upload edilecekse
-        if (images != null && !images.isEmpty()) {
+        // 2) Yeni Ekleme İşlemi
+        if (images != null) {
             for (MultipartFile file : images) {
                 String fileUrl = storageService.upload(file);
-                ProductImage img = ProductImage.builder()
+                item.getImages().add(ProductImage.builder()
                         .imageUrl(fileUrl)
-                        .isMain(false)
                         .jewelryItem(item)
-                        .build();
-                imageRepository.save(img);
-                item.getImages().add(img);
+                        .isMain(false).build());
             }
         }
 
-        // Ana resim update mantığı (eğer DTO mainImageUrl vermişse ona göre, yoksa korunur)
-        if (dto.getMainImageUrl() != null && !dto.getMainImageUrl().isEmpty()) {
-            item.setImageUrl(dto.getMainImageUrl());
-        } else if ((item.getImageUrl() == null || item.getImageUrl().isEmpty()) && item.getImages() != null && !item.getImages().isEmpty()) {
-            // Ana resim yoksa birincil kaydı imageUrl olarak ata
-            item.setImageUrl(item.getImages().get(0).getImageUrl());
+        // 3) Ana Resim Belirleme ve Senkronizasyon
+        determineAndSyncMainImage(item, dto.getMainImageUrl());
+
+        return toDto(itemRepository.save(item));
+    }
+
+    /**
+     * Bu metot JewelryItem'ın imageUrl alanı ile ProductImage listesindeki
+     * isMain flag'lerini senkronize eder.
+     */
+    private void determineAndSyncMainImage(JewelryItem item, String preferredMainUrl) {
+        if (item.getImages() == null || item.getImages().isEmpty()) {
+            item.setImageUrl(null);
+            return;
         }
 
-        JewelryItem saved = itemRepository.save(item);
-        return toDto(saved);
+        // Adım 1: Yeni ana resim URL'ini seç
+        String finalMainUrl;
+
+        // Eğer istenen bir main URL varsa ve listede mevcutsa onu seç
+        boolean preferredExists = item.getImages().stream()
+                .anyMatch(img -> img.getImageUrl().equals(preferredMainUrl));
+
+        // Eğer mevcut main URL hala listedeyse (silinmediyse) onu koru
+        boolean currentMainExists = item.getImages().stream()
+                .anyMatch(img -> img.getImageUrl().equals(item.getImageUrl()));
+
+        if (preferredExists) {
+            finalMainUrl = preferredMainUrl;
+        } else if (currentMainExists) {
+            finalMainUrl = item.getImageUrl();
+        } else {
+            // İkisi de yoksa listenin ilkini seç
+            finalMainUrl = item.getImages().get(0).getImageUrl();
+        }
+
+        // Adım 2: Hem JewelryItem'ı hem de tüm ProductImage flag'lerini güncelle
+        item.setImageUrl(finalMainUrl);
+        for (ProductImage img : item.getImages()) {
+            img.setMain(img.getImageUrl().equals(finalMainUrl));
+        }
     }
 
     @Transactional
@@ -225,14 +231,45 @@ public class JewelryItemService {
             String keyword,
             Long categoryId,
             Long materialId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Boolean inStock,
             int page,
-            int size
+            int size,
+            String sortBy,
+            String direction
     ) {
-        Specification<JewelryItem> spec = JewelryItemSpecification.hasKeyword(keyword)
-                .and(JewelryItemSpecification.hasCategory(categoryId))
-                .and(JewelryItemSpecification.hasMaterial(materialId));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Specification<JewelryItem> spec =
+                JewelryItemSpecification.hasKeyword(keyword)
+                        .and(JewelryItemSpecification.hasCategory(categoryId))
+                        .and(JewelryItemSpecification.hasMaterial(materialId))
+                        .and(JewelryItemSpecification.minPrice(minPrice))
+                        .and(JewelryItemSpecification.maxPrice(maxPrice))
+                        .and(JewelryItemSpecification.inStockOnly(inStock));
+
+        // ✅ Allowed sort fields (whitelist)
+        List<String> allowedSortFields = List.of(
+                "price",
+                "createdAt",
+                "name",
+                "stockQuantity"
+        );
+
+        if (sortBy == null || !allowedSortFields.contains(sortBy)) {
+            sortBy = "createdAt"; // default fallback
+        }
+
+        Sort.Direction sortDirection =
+                "asc".equalsIgnoreCase(direction)
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),                 // negatif page engelle
+                Math.min(size, 50),                // max 50 kayıt (DoS koruması)
+                Sort.by(sortDirection, sortBy)
+        );
 
         return itemRepository.findAll(spec, pageable);
     }

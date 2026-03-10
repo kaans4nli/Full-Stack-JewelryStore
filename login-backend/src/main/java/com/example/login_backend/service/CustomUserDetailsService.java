@@ -19,15 +19,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username)
-            throws UsernameNotFoundException {
-
-        User user = userRepository.findByUsername(username)
+    public UserDetails loadUserByUsername(String loginInput) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(loginInput, loginInput)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("Kullanıcı bulunamadı: " + username));
+                        new UsernameNotFoundException("Kullanıcı bulunamadı (Username/Email): " + loginInput));
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
+                .withUsername(user.getUsername()) // JWT içinde hala benzersiz username kalsın
                 .password(user.getPassword())
                 .roles(user.getRole().name())
                 .build();

@@ -55,7 +55,6 @@ public class AuthController {
     }
 
     /* ================= LOGIN ================= */
-
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(
             @RequestBody LoginRequest request,
@@ -70,18 +69,13 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findByUsernameOrEmail(request.username(), request.username())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 🔄 refresh token rotation (login)
         refreshTokenService.deleteByUserId(user.getId());
-        RefreshToken refreshToken =
-                refreshTokenService.createRefreshToken(user.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                buildRefreshCookie(refreshToken.getToken()).toString()
-        );
+        response.addHeader(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken.getToken()).toString());
 
         String accessToken = jwtUtil.generateJwtToken(authentication);
         return ResponseEntity.ok(new JwtResponse(accessToken));

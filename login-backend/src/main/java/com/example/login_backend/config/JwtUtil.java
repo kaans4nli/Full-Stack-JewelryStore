@@ -27,7 +27,6 @@ public class JwtUtil {
 
     // 🔐 LOGIN / AUTH
     public String generateJwtToken(Authentication authentication) {
-
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
 
         List<String> roles = userPrincipal.getAuthorities()
@@ -39,9 +38,7 @@ public class JwtUtil {
                 .setSubject(userPrincipal.getUsername())
                 .claim("roles", roles)
                 .setIssuedAt(new Date())
-                .setExpiration(
-                        new Date(System.currentTimeMillis() + jwtExpirationMs)
-                )
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

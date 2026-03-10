@@ -16,7 +16,7 @@ import java.util.List;
 public class ProductImageController {
 
     private final ProductImageService service;
-    private final StorageService storageService; // <-- BURADA
+    private final StorageService storageService;
 
     @GetMapping("/{itemId}")
     public List<ProductImage> getImages(@PathVariable Long itemId) {
@@ -33,7 +33,7 @@ public class ProductImageController {
             @PathVariable Long itemId,
             @RequestPart("image") MultipartFile file
     ) {
-        String url = storageService.upload(file); // <-- ARTIK ÇALIŞIR
+        String url = storageService.upload(file);
         return service.addImage(itemId, url);
     }
 
